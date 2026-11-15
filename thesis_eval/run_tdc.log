@@ -1,0 +1,43 @@
+[done] Caco2_Wang/Caco2_Wang fold1: {'mae': 0.35250723619523305, 'rmse': 0.46033483300548445, 'r2': 0.6405135446700365, 'pcc': 0.8047008489377645, 'srcc': 0.7950256467352804, 'n_test': 182, 'n_predicted': 182}
+[done] Caco2_Wang/Caco2_Wang fold2: {'mae': 0.3635062138021216, 'rmse': 0.47248285787449257, 'r2': 0.6584394858044678, 'pcc': 0.8114759555400779, 'srcc': 0.769275683521324, 'n_test': 181, 'n_predicted': 181}
+[done] Caco2_Wang/Caco2_Wang fold3: {'mae': 0.31994822574155957, 'rmse': 0.4236889961862612, 'r2': 0.6845568866131655, 'pcc': 0.8317874272520676, 'srcc': 0.8045937356843204, 'n_test': 181, 'n_predicted': 181}
+[done] Caco2_Wang/Caco2_Wang fold4: {'mae': 0.3203947575508814, 'rmse': 0.3986068083757793, 'r2': 0.7172815095101179, 'pcc': 0.850546845774597, 'srcc': 0.8344646353188709, 'n_test': 181, 'n_predicted': 181}
+[done] Caco2_Wang/Caco2_Wang fold5: {'mae': 0.31950270051914226, 'rmse': 0.3937155516739382, 'r2': 0.7543375497239255, 'pcc': 0.8713690554733847, 'srcc': 0.8509382235945239, 'n_test': 181, 'n_predicted': 181}
+aggregate: /HDD1/rlawlsgurjh/work/Thesis/CUE/results/v4/Caco2_Wang/Caco2_Wang/metrics.csv
+[done] Lipophilicity_AstraZeneca/Lipophilicity_AstraZeneca fold1: {'mae': 0.5749067986231635, 'rmse': 0.7736311196348964, 'r2': 0.5788828840293203, 'pcc': 0.7632810954068856, 'srcc': 0.7450369157651119, 'n_test': 840, 'n_predicted': 840}
+[done] Lipophilicity_AstraZeneca/Lipophilicity_AstraZeneca fold2: {'mae': 0.5990192149969572, 'rmse': 0.7891439251613033, 'r2': 0.5560523892060488, 'pcc': 0.7479771164430609, 'srcc': 0.7323968572007598, 'n_test': 840, 'n_predicted': 840}
+[done] Lipophilicity_AstraZeneca/Lipophilicity_AstraZeneca fold3: {'mae': 0.5665463218816706, 'rmse': 0.7702842827342209, 'r2': 0.582225628912469, 'pcc': 0.7639496816441071, 'srcc': 0.744737883406702, 'n_test': 840, 'n_predicted': 840}
+[done] Lipophilicity_AstraZeneca/Lipophilicity_AstraZeneca fold4: {'mae': 0.5766224535790098, 'rmse': 0.788216391739482, 'r2': 0.5794031346783041, 'pcc': 0.7626567809302411, 'srcc': 0.7522329689831753, 'n_test': 840, 'n_predicted': 840}
+[done] Lipophilicity_AstraZeneca/Lipophilicity_AstraZeneca fold5: {'mae': 0.5462015264167022, 'rmse': 0.735801614008272, 'r2': 0.6419689624872937, 'pcc': 0.8018431270028394, 'srcc': 0.794181231150778, 'n_test': 840, 'n_predicted': 840}
+aggregate: /HDD1/rlawlsgurjh/work/Thesis/CUE/results/v4/Lipophilicity_AstraZeneca/Lipophilicity_AstraZeneca/metrics.csv
+[done] VDss_Lombardo/VDss_Lombardo fold1: {'mae': 2.446606897444982, 'rmse': 6.593675377763511, 'r2': 0.17953881219092338, 'pcc': 0.5303697703453505, 'srcc': 0.6876555851240832, 'n_test': 223, 'n_predicted': 223}
+[done] VDss_Lombardo/VDss_Lombardo fold2: {'mae': 5.8926564298371495, 'rmse': 46.35656709964226, 'r2': 0.04229447686334997, 'pcc': 0.36631409682823834, 'srcc': 0.6733448520240198, 'n_test': 222, 'n_predicted': 222}
+[done] VDss_Lombardo/VDss_Lombardo fold3: {'mae': 2.8190779872331233, 'rmse': 9.578650617911459, 'r2': 0.24646150406446066, 'pcc': 0.5968482362931943, 'srcc': 0.7217614955018787, 'n_test': 222, 'n_predicted': 222}
+[done] VDss_Lombardo/VDss_Lombardo fold4: {'mae': 2.0514745010948436, 'rmse': 5.072958701929257, 'r2': 0.2032509940682986, 'pcc': 0.5001579377816845, 'srcc': 0.7008187210160317, 'n_test': 222, 'n_predicted': 222}
+[done] VDss_Lombardo/VDss_Lombardo fold5: {'mae': 2.7202337890352175, 'rmse': 7.309534842082623, 'r2': 0.2960286480148552, 'pcc': 0.6325200070874469, 'srcc': 0.7183613022722067, 'n_test': 222, 'n_predicted': 222}
+aggregate: /HDD1/rlawlsgurjh/work/Thesis/CUE/results/v4/VDss_Lombardo/VDss_Lombardo/metrics.csv
+[done] Half_Life_Obach/Half_Life_Obach fold1: {'mae': 11.964450280073889, 'rmse': 68.65871774005093, 'r2': -0.002325226342767106, 'pcc': 0.0935756880878916, 'srcc': 0.5999658247597701, 'n_test': 133, 'n_predicted': 133}
+[done] Half_Life_Obach/Half_Life_Obach fold2: {'mae': 29.866105530356396, 'rmse': 137.49126597084623, 'r2': -0.017772247522171325, 'pcc': 0.10277055602985616, 'srcc': 0.5432866239144608, 'n_test': 133, 'n_predicted': 133}
+[done] Half_Life_Obach/Half_Life_Obach fold3: {'mae': 8.132214860373288, 'rmse': 19.875264072546404, 'r2': -0.03720742748836736, 'pcc': 0.194360779763796, 'srcc': 0.42468451876753976, 'n_test': 133, 'n_predicted': 133}
+[done] Half_Life_Obach/Half_Life_Obach fold4: {'mae': 14.373487598621619, 'rmse': 66.5753119914201, 'r2': 0.011485636696827783, 'pcc': 0.2567641831127, 'srcc': 0.5712780766641082, 'n_test': 133, 'n_predicted': 133}
+[done] Half_Life_Obach/Half_Life_Obach fold5: {'mae': 14.803151342044176, 'rmse': 72.702821216937, 'r2': -0.027661395128590005, 'pcc': 0.05623958080938818, 'srcc': 0.4059870993995645, 'n_test': 133, 'n_predicted': 133}
+aggregate: /HDD1/rlawlsgurjh/work/Thesis/CUE/results/v4/Half_Life_Obach/Half_Life_Obach/metrics.csv
+[done] Clearance_Hepatocyte_AZ/Clearance_Hepatocyte_AZ fold1: {'mae': 32.070201345663136, 'rmse': 47.15141992379575, 'r2': 0.1431140099920728, 'pcc': 0.4621510888626955, 'srcc': 0.516851656018324, 'n_test': 204, 'n_predicted': 204}
+[done] Clearance_Hepatocyte_AZ/Clearance_Hepatocyte_AZ fold2: {'mae': 28.822815521490057, 'rmse': 45.02289680392125, 'r2': 0.16113062638983133, 'pcc': 0.48970893496102214, 'srcc': 0.46791348012070105, 'n_test': 204, 'n_predicted': 204}
+[done] Clearance_Hepatocyte_AZ/Clearance_Hepatocyte_AZ fold3: {'mae': 31.70619722502491, 'rmse': 48.03750388740783, 'r2': 0.1263710891608265, 'pcc': 0.4508645671243984, 'srcc': 0.4962199689997134, 'n_test': 204, 'n_predicted': 204}
+[done] Clearance_Hepatocyte_AZ/Clearance_Hepatocyte_AZ fold4: {'mae': 31.935503453952208, 'rmse': 49.08348286203523, 'r2': 0.0754435546349943, 'pcc': 0.42403145740847076, 'srcc': 0.5280559878673515, 'n_test': 204, 'n_predicted': 204}
+[done] Clearance_Hepatocyte_AZ/Clearance_Hepatocyte_AZ fold5: {'mae': 29.602245876632217, 'rmse': 44.938785893929676, 'r2': 0.19761128174363296, 'pcc': 0.48926844078921183, 'srcc': 0.5898648651921952, 'n_test': 204, 'n_predicted': 204}
+aggregate: /HDD1/rlawlsgurjh/work/Thesis/CUE/results/v4/Clearance_Hepatocyte_AZ/Clearance_Hepatocyte_AZ/metrics.csv
+[done] Clearance_Microsome_AZ/Clearance_Microsome_AZ fold1: {'mae': 21.791216012407432, 'rmse': 38.197086160712914, 'r2': 0.2299464726240713, 'pcc': 0.5434503677180361, 'srcc': 0.6151419019381118, 'n_test': 221, 'n_predicted': 221}
+[done] Clearance_Microsome_AZ/Clearance_Microsome_AZ fold2: {'mae': 24.627756357804138, 'rmse': 41.8802369793686, 'r2': 0.048160705925852754, 'pcc': 0.3721727946948887, 'srcc': 0.599388640694325, 'n_test': 221, 'n_predicted': 221}
+[done] Clearance_Microsome_AZ/Clearance_Microsome_AZ fold3: {'mae': 26.202854225723836, 'rmse': 44.83515353103344, 'r2': 0.058517013597030876, 'pcc': 0.40733843132998554, 'srcc': 0.5366761782274916, 'n_test': 220, 'n_predicted': 220}
+[done] Clearance_Microsome_AZ/Clearance_Microsome_AZ fold4: {'mae': 24.837847428935394, 'rmse': 41.94272118862783, 'r2': 0.13299348704764413, 'pcc': 0.46541227873813507, 'srcc': 0.5862701176643582, 'n_test': 220, 'n_predicted': 220}
+[done] Clearance_Microsome_AZ/Clearance_Microsome_AZ fold5: {'mae': 25.461277716076093, 'rmse': 44.2866017356721, 'r2': 0.07741597117495458, 'pcc': 0.4064227746917911, 'srcc': 0.52139160422333, 'n_test': 220, 'n_predicted': 220}
+aggregate: /HDD1/rlawlsgurjh/work/Thesis/CUE/results/v4/Clearance_Microsome_AZ/Clearance_Microsome_AZ/metrics.csv
+[done] LD50_Zhu/LD50_Zhu fold1: {'mae': 0.4899277747245506, 'rmse': 0.6598382205376069, 'r2': 0.5343799027646803, 'pcc': 0.7365407013765223, 'srcc': 0.6911186559702996, 'n_test': 1469, 'n_predicted': 1469}
+[done] LD50_Zhu/LD50_Zhu fold2: {'mae': 0.46923479922866806, 'rmse': 0.6471926642803202, 'r2': 0.5421412549829392, 'pcc': 0.7431600180061908, 'srcc': 0.6953003551211085, 'n_test': 1469, 'n_predicted': 1469}
+[done] LD50_Zhu/LD50_Zhu fold3: {'mae': 0.48556317405150234, 'rmse': 0.6593788710486309, 'r2': 0.5270356644299582, 'pcc': 0.7307847916714294, 'srcc': 0.6855629739209738, 'n_test': 1468, 'n_predicted': 1468}
+[done] LD50_Zhu/LD50_Zhu fold4: {'mae': 0.46745017644986175, 'rmse': 0.6333584186133866, 'r2': 0.5557707497319292, 'pcc': 0.7506445799777269, 'srcc': 0.7059905719308037, 'n_test': 1468, 'n_predicted': 1468}
+[done] LD50_Zhu/LD50_Zhu fold5: {'mae': 0.47120359349433993, 'rmse': 0.6279790665839539, 'r2': 0.575192092671819, 'pcc': 0.7620450964375853, 'srcc': 0.6959599928106435, 'n_test': 1468, 'n_predicted': 1468}
+aggregate: /HDD1/rlawlsgurjh/work/Thesis/CUE/results/v4/LD50_Zhu/LD50_Zhu/metrics.csv
+TDC_DONE
