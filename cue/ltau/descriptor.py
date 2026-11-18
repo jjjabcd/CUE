@@ -13,18 +13,18 @@ class PDFArtifacts:
     """Container for PDF artifacts."""
     compound_ids: np.ndarray
     pdfs: np.ndarray          # (N, B) density per bin
-    shared_bin_edges: np.ndarray     # (B+1,)
+    bin_edges: np.ndarray     # (B+1,)
 
 
 def load_error_trajectories_csv(path_csv: str) -> Tuple[np.ndarray, List[List[float]]]:
     """
     Args:
-        path_csv (str): Path to *train_trajectories.csv* or *va_trajectories.csv*.
+        path_csv (str): Path to *train_trajectories.csv* or *val_trajectories.csv*.
 
     Returns:
         Tuple[np.ndarray, List[List[float]]]:
             - compound_ids: (N,)
-            - loss_trajectories: list of length N, each is a list of errors over epochs
+            - trajectories: list of length N, each is a list of errors over epochs
     """
     df = pd.read_csv(path_csv)
     if "compound_chembl_id" not in df.columns or "error_trajectory" not in df.columns:
@@ -33,33 +33,33 @@ def load_error_trajectories_csv(path_csv: str) -> Tuple[np.ndarray, List[List[fl
     compound_ids = df["compound_chembl_id"].values
     traj_raw = df["error_trajectory"].tolist()
 
-    loss_trajectories: List[List[float]] = []
+    trajectories: List[List[float]] = []
     for x in traj_raw:
         if isinstance(x, list):
-            loss_trajectories.append([float(v) for v in x])
+            trajectories.append([float(v) for v in x])
         else:
             # stored as string like "[0.1, 0.2, ...]"
-            loss_trajectories.append([float(v) for v in ast.literal_eval(x)])
-    return compound_ids, loss_trajectories
+            trajectories.append([float(v) for v in ast.literal_eval(x)])
+    return compound_ids, trajectories
 
 
 def make_shared_bin_edges(
-    loss_trajectories: List[List[float]],
+    trajectories: List[List[float]],
     num_bins: int,
     emax_scale: float = 1.2,
     eps: float = 1e-12,
 ) -> np.ndarray:
     """
     Args:
-        loss_trajectories (List[List[float]]): Error loss trajectories.
+        trajectories (List[List[float]]): Error trajectories.
         num_bins (int): Number of bins.
         emax_scale (float): Scale factor for max error to define upper bin edge.
         eps (float): Small epsilon to avoid degenerate ranges.
 
     Returns:
-        np.ndarray: Shared bin edges, shape (num_bins + 1,)
+        np.ndarray: Bin edges, shape (num_bins + 1,)
     """
-    all_vals = np.concatenate([np.asarray(loss_trajectory_i, dtype=float) for loss_trajectory_i in loss_trajectories])
+    all_vals = np.concatenate([np.asarray(t, dtype=float) for t in trajectories])
     all_vals = all_vals[np.isfinite(all_vals)]
     if all_vals.size == 0:
         raise ValueError("No finite trajectory values found.")
@@ -79,45 +79,45 @@ def make_shared_bin_edges(
 
 def trajectories_to_pdfs(
     compound_ids: np.ndarray,
-    loss_trajectories: List[List[float]],
-    shared_bin_edges: np.ndarray,
+    trajectories: List[List[float]],
+    bin_edges: np.ndarray,
 ) -> PDFArtifacts:
     """
     Args:
         compound_ids (np.ndarray): (N,)
-        loss_trajectories (List[List[float]]): list length N
-        shared_bin_edges (np.ndarray): (B+1,)
+        trajectories (List[List[float]]): list length N
+        bin_edges (np.ndarray): (B+1,)
 
     Returns:
         PDFArtifacts: pdfs are density per bin, shape (N, B)
     """
-    n = len(loss_trajectories)
-    b = len(shared_bin_edges) - 1
+    n = len(trajectories)
+    b = len(bin_edges) - 1
     pdfs = np.zeros((n, b), dtype=float)
 
-    for i, loss_trajectory_i in enumerate(loss_trajectories):
-        sample_error = np.asarray(loss_trajectory_i, dtype=float)
-        sample_error = sample_error[np.isfinite(sample_error)]
-        if sample_error.size == 0:
+    for i, t in enumerate(trajectories):
+        arr = np.asarray(t, dtype=float)
+        arr = arr[np.isfinite(arr)]
+        if arr.size == 0:
             continue
 
-        hist, _ = np.histogram(sample_error, bins=shared_bin_edges, density=True)
+        hist, _ = np.histogram(arr, bins=bin_edges, density=True)
         pdfs[i] = hist.astype(float)
 
-    return PDFArtifacts(compound_ids=compound_ids, pdfs=pdfs, shared_bin_edges=shared_bin_edges)
+    return PDFArtifacts(compound_ids=compound_ids, pdfs=pdfs, bin_edges=bin_edges)
 
 
-def pdfs_to_uncertainty_entropy(pdfs: np.ndarray, shared_bin_edges: np.ndarray, eps: float = 1e-12) -> np.ndarray:
+def pdfs_to_uncertainty_entropy(pdfs: np.ndarray, bin_edges: np.ndarray, eps: float = 1e-12) -> np.ndarray:
     """
     Args:
         pdfs (np.ndarray): Density per bin, (N, B)
-        shared_bin_edges (np.ndarray): (B+1,)
+        bin_edges (np.ndarray): (B+1,)
         eps (float)
 
     Returns:
         np.ndarray: Normalized entropy uncertainty in [0, 1], shape (N,)
     """
-    widths = (shared_bin_edges[1:] - shared_bin_edges[:-1]).astype(float)  # (B,)
+    widths = (bin_edges[1:] - bin_edges[:-1]).astype(float)  # (B,)
     widths = np.maximum(widths, eps)
 
     # Convert density -> probability mass
@@ -133,17 +133,17 @@ def pdfs_to_uncertainty_entropy(pdfs: np.ndarray, shared_bin_edges: np.ndarray, 
     return np.clip(u, 0.0, 1.0)
 
 
-def pdfs_to_expected_error(pdfs: np.ndarray, shared_bin_edges: np.ndarray) -> np.ndarray:
+def pdfs_to_expected_error(pdfs: np.ndarray, bin_edges: np.ndarray) -> np.ndarray:
     """
     Args:
         pdfs (np.ndarray): Density per bin, (N, B)
-        shared_bin_edges (np.ndarray): (B+1,)
+        bin_edges (np.ndarray): (B+1,)
 
     Returns:
         np.ndarray: Expected error (same scale as trajectory), shape (N,)
     """
-    centers = 0.5 * (shared_bin_edges[:-1] + shared_bin_edges[1:])
-    widths = (shared_bin_edges[1:] - shared_bin_edges[:-1])
+    centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+    widths = (bin_edges[1:] - bin_edges[:-1])
 
     pmass = pdfs * widths[None, :]
     s = np.maximum(pmass.sum(axis=1, keepdims=True), 1e-12)

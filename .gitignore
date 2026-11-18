@@ -5,3 +5,16 @@ nohup.out
 results/
 
 **.pth**
+# 통합 결과 트리 (2026-11-18). 용량이 커서 git 으로 관리하지 않는다.
+# 경로 규칙은 results/README.md, 통합 경위는 CONSOLIDATION.md 참고.
+results_shared/
+results_aux/
+scaffold_results/
+
+# 사전학습 체크포인트 (별도로 내려받는다)
+cue/mole/ckpts/*.ckpt
+cue/mgssl/ckpts/*.pth
+cue/conformer/ckpts/*.pt
+cue/conformer/ckpts/*.txt
+cue/conformer/ckpts/.cache/
+!cue/conformer/ckpts/.gitkeep

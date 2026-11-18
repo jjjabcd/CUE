@@ -17,7 +17,8 @@ class DownstreamMLPConfigs:
         hidden_dim_1 (int): First hidden dimension
         hidden_dim_2 (int): Second hidden dimension
         device (str): Device string
-        seed (int): Random seed
+        seed (int): Random seed for this head's weight initialization (default 1,
+            applied identically to every dataset / UQ method / modality combination / fold).
     """
     num_epochs: int = 500
     learning_rate: float = 1e-3
@@ -29,7 +30,7 @@ class DownstreamMLPConfigs:
     hidden_dim_3: int = 4
     
     device: str = "cuda:0"
-    seed: int = 2025
+    seed: int = 1
 
 
 

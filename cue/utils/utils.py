@@ -5,24 +5,53 @@ import numpy as np
 from pandas.api.types import is_numeric_dtype
 from cue.utils.metric import get_metrics
 import time
-import pickle
-import torch
-from torch.utils.data import Dataset as TorchDataset
 
-def ensure_dirs(fold_out: str) -> None:
+def ensure_dirs(fold_out: str, task: str) -> None:
     """
     Args:
         fold_out (str): fold output directory
+        task (str): task type
     Returns:
         None
     """
     os.makedirs(fold_out, exist_ok=True)
     os.makedirs(os.path.join(fold_out, "fusion"), exist_ok=True)
-    os.makedirs(os.path.join(fold_out, "emb"), exist_ok=True)
-    os.makedirs(os.path.join(fold_out, "regressors"), exist_ok=True)
+    os.makedirs(os.path.join(fold_out, "embeddings"), exist_ok=True)
+
+    if task == "regression":
+        os.makedirs(os.path.join(fold_out, "regressors"), exist_ok=True)
+    elif task == "classification":
+        os.makedirs(os.path.join(fold_out, "classifiers"), exist_ok=True)
+    else:
+        raise ValueError(f"Invalid task: {task}")
+    
     os.makedirs(os.path.join(fold_out, "ltau"), exist_ok=True)
 
 
+
+
+# ---------------------------------------------------------------------------
+# Legacy -> unified naming.
+# The shared ChEMBL tables under chembl/data/selectivity_df still carry the
+# original column spellings, while every output path, figure and table in this
+# project uses the unified short names (WS2, RS2 / DIS, INH).  Normalizing on
+# read means --target_col takes the unified name everywhere.
+# ---------------------------------------------------------------------------
+LEGACY_COLUMNS = {
+    "WS(alpha=2)": "WS2",
+    "WS(alpha=1)": "WS1",
+    "RS(k=2)": "RS2",
+    "RS(k=3)": "RS3",
+}
+
+LEGACY_DATASETS = {"Kd": "DIS", "Ki": "INH"}
+DATASET_TO_SOURCE = {v: k for k, v in LEGACY_DATASETS.items()}
+
+
+def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Rename the legacy target columns of a selectivity table to the unified names."""
+    hits = {c: LEGACY_COLUMNS[c] for c in df.columns if c in LEGACY_COLUMNS}
+    return df.rename(columns=hits) if hits else df
 
 
 def _drop_nan_rows(
@@ -71,9 +100,9 @@ def load_fold(fold_path: str, target_col: str) -> Tuple[np.ndarray, ...]:
             X_va, y_va,
             X_te, y_te
     """
-    tr = pd.read_csv(os.path.join(fold_path, "selectivity_train.csv"))
-    va = pd.read_csv(os.path.join(fold_path, "selectivity_val.csv"))
-    te = pd.read_csv(os.path.join(fold_path, "selectivity_test.csv"))
+    tr = normalize_columns(pd.read_csv(os.path.join(fold_path, "selectivity_train.csv")))
+    va = normalize_columns(pd.read_csv(os.path.join(fold_path, "selectivity_val.csv")))
+    te = normalize_columns(pd.read_csv(os.path.join(fold_path, "selectivity_test.csv")))
 
     tr_id, X_tr, y_tr = _drop_nan_rows(
         tr,
@@ -96,10 +125,11 @@ def load_fold(fold_path: str, target_col: str) -> Tuple[np.ndarray, ...]:
 
     return tr_id, va_id, te_id, X_tr, y_tr, X_va, y_va, X_te, y_te
 
-def aggregate_metrics(df_ys: pd.DataFrame, **kwargs) -> pd.DataFrame:
+def aggregate_metrics(df_ys: pd.DataFrame, task_type: str = "regression") -> pd.DataFrame:
     """
     Args:
         df_ys (pd.DataFrame): concatenated predictions across folds
+        task_type (str): 'regression' | 'classification'
 
     Returns:
         pd.DataFrame: aggregated metrics table (mean/std over folds)
@@ -114,9 +144,17 @@ def aggregate_metrics(df_ys: pd.DataFrame, **kwargs) -> pd.DataFrame:
 
     folds = sorted(df_ys["Fold"].unique())
 
-    # regression: keep numeric columns only
+    # --------------------------------------------------
+    # Model columns selection (task-aware)
+    # --------------------------------------------------
     pred_cols = [c for c in df_ys.columns if c not in meta_cols]
-    model_names = [c for c in pred_cols if is_numeric_dtype(df_ys[c])]
+
+    if task_type == "classification":
+        # Only probability columns
+        model_names = [c for c in pred_cols if (c.endswith("_prob") or c == "mlp_prob" or c == "mlp")]
+    else:
+        # regression: keep numeric columns only
+        model_names = [c for c in pred_cols if is_numeric_dtype(df_ys[c])]
 
     results: List[Dict[str, Any]] = []
 
@@ -141,10 +179,13 @@ def aggregate_metrics(df_ys: pd.DataFrame, **kwargs) -> pd.DataFrame:
                 fold_metrics.append({})
                 continue
 
-            met = get_metrics(y_true_f, y_pred_f)
+            met = get_metrics(y_true_f, y_pred_f, task_type=task_type)
             fold_metrics.append(met)
 
-        keys = ["rmse", "r2", "pcc"]
+        if task_type == "classification":
+            keys = ["f1", "precision", "recall", "accuracy", "auc_roc", "mcc"]
+        else:
+            keys = ["mse", "rmse", "r2", "pcc", "ci"]
 
         row: Dict[str, Any] = {"model_name": model_name}
         for k in keys:
@@ -158,14 +199,18 @@ def aggregate_metrics(df_ys: pd.DataFrame, **kwargs) -> pd.DataFrame:
 
 
 
-def compute_fold_metrics_table(df_pred: pd.DataFrame) -> pd.DataFrame:
+def compute_fold_metrics_table(df_pred: pd.DataFrame, task_type: str) -> pd.DataFrame:
     """
     Args:
         df_pred (pd.DataFrame): Fold-level prediction table (e.g., predictions.csv)
+        task_type (str): 'regression' | 'classification'
 
     Returns:
         pd.DataFrame: rows = models, columns = metrics (+ Fold, model_name)
     """
+    if task_type not in {"regression", "classification"}:
+        raise ValueError("task_type must be 'regression' or 'classification'")
+
     if "GroundTruth" not in df_pred.columns or "Fold" not in df_pred.columns:
         raise ValueError("df_pred must contain 'GroundTruth' and 'Fold' columns")
 
@@ -174,8 +219,12 @@ def compute_fold_metrics_table(df_pred: pd.DataFrame) -> pd.DataFrame:
     meta_cols = {"GroundTruth", "Fold", "compound_chembl_id", "ID", "Dataset"}
     pred_cols = [c for c in df_pred.columns if c not in meta_cols]
 
-    # Regression: use all numeric prediction columns
-    model_cols = [c for c in pred_cols if pd.api.types.is_numeric_dtype(df_pred[c])]
+    # Classification: only probability columns
+    if task_type == "classification":
+        model_cols = [c for c in pred_cols if (c.endswith("_prob") or c == "mlp_prob" or c == "mlp")]
+    else:
+        # Regression: use all numeric prediction columns
+        model_cols = [c for c in pred_cols if pd.api.types.is_numeric_dtype(df_pred[c])]
 
     rows: List[Dict[str, Any]] = []
     y_true = df_pred["GroundTruth"].values.astype(float)
@@ -191,7 +240,7 @@ def compute_fold_metrics_table(df_pred: pd.DataFrame) -> pd.DataFrame:
         if y_t.size == 0:
             met = {}
         else:
-            met = get_metrics(y_t, y_p)
+            met = get_metrics(y_t, y_p, task_type=task_type)
 
         row: Dict[str, Any] = {"Fold": fold, "model_name": col}
         row.update(met)
@@ -200,19 +249,26 @@ def compute_fold_metrics_table(df_pred: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def aggregate_fold_metrics_tables(df_fold_metrics: pd.DataFrame) -> pd.DataFrame:
+def aggregate_fold_metrics_tables(df_fold_metrics: pd.DataFrame, task_type: str) -> pd.DataFrame:
     """
     Args:
         df_fold_metrics (pd.DataFrame): concatenated fold-level metrics tables
             Required columns: ['Fold', 'model_name', <metric columns...>]
+        task_type (str): 'regression' | 'classification'
 
     Returns:
         pd.DataFrame: aggregated metrics per model (mean/std over folds)
     """
+    if task_type not in {"regression", "classification"}:
+        raise ValueError("task_type must be 'regression' or 'classification'")
+
     if "model_name" not in df_fold_metrics.columns:
         raise ValueError("df_fold_metrics must contain 'model_name'")
 
-    keys = ["mse", "rmse", "r2", "pcc", "ci"]
+    if task_type == "classification":
+        keys = ["f1", "precision", "recall", "accuracy", "auc_roc", "mcc"]
+    else:
+        keys = ["mse", "rmse", "r2", "pcc", "ci"]
 
     results: List[Dict[str, Any]] = []
     for model_name, g in df_fold_metrics.groupby("model_name"):
@@ -262,140 +318,3 @@ def print_elapsed_time(start_time: float, end_time: float) -> None:
         print(f"[INFO] Total time: {minutes} minutes {seconds} seconds")
     else:
         print(f"[INFO] Total time: {seconds} seconds")
-
-
-class MyDataset(TorchDataset):
-    """
-    Torch Dataset wrapper with dtype safety.
-    """
-
-    def __init__(
-        self,
-        data: np.ndarray,
-        labels: np.ndarray,
-        do_normalize: bool = True,
-    ):
-        """
-        Args:
-            data (np.ndarray): Feature array (N, D)
-            labels (np.ndarray): Label array (N, 1)
-            do_normalize (bool)
-        """
-        self.data = data.astype(np.float32)
-        self.labels = labels.astype(np.float32)
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-    def __getitem__(self, idx: int):
-        return self.data[idx], self.labels[idx]
-
-
-class NumpyDataset(TorchDataset):
-    """
-    Simple torch Dataset with numpy inputs.
-    """
-
-    def __init__(self, X: np.ndarray, y: np.ndarray):
-        """
-        Args:
-            X (np.ndarray): Feature array, shape (N, D)
-            y (np.ndarray): Label array, shape (N, 1) or (N,)
-        """
-        self.X = X.astype(np.float32)
-        y_ = y.reshape(-1, 1) if y.ndim == 1 else y
-        self.y = y_.astype(np.float32)
-
-    def __len__(self) -> int:
-        return int(self.X.shape[0])
-
-    def __getitem__(self, idx: int):
-        return self.X[idx], self.y[idx]
-
-
-class LabelNormalizer:
-    """
-    Label normalizer for downstream regressors.
-
-    Supported modes:
-        - zscore
-        - robust
-        - minmax
-        - none
-    """
-
-    def __init__(self, mode: str = "zscore"):
-        self.mode = mode
-        self.mean = None
-        self.std = None
-        self.median = None
-        self.iqr = None
-        self.y_min = None
-        self.y_max = None
-
-    def fit(self, y: np.ndarray) -> None:
-        y = y.astype(float)
-
-        if self.mode == "zscore":
-            self.mean = float(np.mean(y))
-            self.std = float(np.std(y) + 1e-8)
-
-        elif self.mode == "robust":
-            self.median = float(np.median(y))
-            q1 = np.percentile(y, 25)
-            q3 = np.percentile(y, 75)
-            self.iqr = float(q3 - q1 + 1e-8)
-
-        elif self.mode == "minmax":
-            self.y_min = float(np.min(y))
-            self.y_max = float(np.max(y))
-
-        elif self.mode == "none":
-            pass
-
-        else:
-            raise ValueError(f"Unknown normalization mode: {self.mode}")
-
-    def transform(self, y: np.ndarray) -> np.ndarray:
-        if self.mode == "zscore":
-            return (y - self.mean) / self.std
-
-        elif self.mode == "robust":
-            return (y - self.median) / self.iqr
-
-        elif self.mode == "minmax":
-            return (y - self.y_min) / (self.y_max - self.y_min + 1e-8)
-
-        elif self.mode == "none":
-            return y
-
-        else:
-            raise ValueError(f"Unknown normalization mode: {self.mode}")
-
-    def inverse_transform(self, z: np.ndarray) -> np.ndarray:
-        if self.mode == "zscore":
-            return z * self.std + self.mean
-
-        elif self.mode == "robust":
-            return z * self.iqr + self.median
-
-        elif self.mode == "minmax":
-            return z * (self.y_max - self.y_min) + self.y_min
-
-        elif self.mode == "none":
-            return z
-
-        else:
-            raise ValueError(f"Unknown normalization mode: {self.mode}")
-
-    def save(self, path: str) -> None:
-        with open(path, "wb") as f:
-            pickle.dump(self.__dict__, f)
-
-    @staticmethod
-    def load(path: str):
-        with open(path, "rb") as f:
-            d = pickle.load(f)
-        obj = LabelNormalizer(d["mode"])
-        obj.__dict__.update(d)
-        return obj
